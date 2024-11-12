@@ -2,30 +2,19 @@ from time import sleep
 class User:
     def __init__(self, nickname, password, age):
         self.nickname = nickname
-        self.password = self.hash_password(password)
+        self.password = hash(password)
         self.age = age
-
-    def hash_password(self, password):
-        return hash(password)
 
     def __str__(self):
         return self.nickname
 
-    def __repr__(self):
-        return f'User(nickname={self.nickname}, age={self.age})'
 
 class Video:
     def __init__(self, title, duration, adult_mode=False):
         self.title = title
         self.duration = duration
-        self.time_now = 0
         self.adult_mode = adult_mode
-
-    def __str__(self):
-        return self.title
-
-    def __repr__(self):
-        return f"Video(title={self.title}, duration={self.duration}, adult_mode={self.adult_mode})"
+        self.time_now = 0
 
 class UrTube:
     def __init__(self):
@@ -35,56 +24,55 @@ class UrTube:
 
     def log_in(self, nickname, password):
         for user in self.users:
-            if user.nickname == nickname and user.password == self.hash_password(password):
+            if user.nickname == nickname and user.password == self.hash(password):
                 self.current_user = user
                 return
-        print("Неверный логин или пароль")
+        print('Неверный логин или пароль')
 
     def register(self, nickname, password, age):
+        user_found = False
         for user in self.users:
             if user.nickname == nickname:
-                print(f"Пользователь {nickname} уже существует")
-                return
-        new_user = User(nickname, password, age)
-        self.users.append(new_user)
-        self.current_user = new_user
+                user_found = True
+                print(f'Пользователь {nickname} уже существует')
+                break
+        if not user_found:
+            self.current_user = User(nickname, password, age)
+            self.users.append(self.current_user)
 
     def log_out(self):
         self.current_user = None
 
-    def add(self, *videos):
-        for video in videos:
-            if not any(v.title == video.title for v in self.videos):
-                self.videos.append(video)
+    def add(self, *args):
+        for i in range(len(args)):
+            video_found = False
+            for j in range(len(self.videos)):
+                if self.videos[j].title == args[i].title:
+                    video_found = True
+            if not video_found:
+                self.videos.append(args[i])
 
     def get_videos(self, search_word):
         search_word_lower = search_word.lower()
         return [video.title for video in self.videos if search_word_lower in video.title.lower()]
 
     def watch_video(self, title):
-        if not self.current_user:
-            print("Войдите в аккаунт, чтобы смотреть видео")
+        if self.current_user is None:
+            print('Войдите в аккаунт, чтобы смотреть видео')
             return
 
-        video = next((v for v in self.videos if v.title == title), None)
-        if not video:
-            print("Видео не найдено")
-            return
+        for i in range(len(self.videos)):
+            if self.videos[i].title == title:
+                if self.videos[i].adult_mode:
+                    if self.current_user.age < 18:
+                        print('Вам нет 18 лет, пожалуйста покиньте страницу')
+                        return
 
-        if video.adult_mode and self.current_user.age < 18:
-            print("Вам нет 18 лет, пожалуйста покиньте страницу")
-            return
-
-        for second in range(video.time_now, video.duration):
-            print(f"Секунда: {second + 1}")
-            sleep(1)
-
-        video.time_now = 0
-        print("Конец видео")
-
-    @staticmethod
-    def hash_password(password):
-        return int(hashlib.sha256(password.encode()).hexdigest(), 16)
+                    for j in range(self.videos[i].duration):
+                        sleep(1)
+                        print(j + 1, end=' ')
+                    print('Конец видео')
+                    break
 
 ur = UrTube()
 v1 = Video('Лучший язык программирования 2024 года', 200)
