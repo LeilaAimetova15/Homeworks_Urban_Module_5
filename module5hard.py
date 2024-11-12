@@ -8,7 +8,6 @@ class User:
     def __str__(self):
         return self.nickname
 
-
 class Video:
     def __init__(self, title, duration, adult_mode=False):
         self.title = title
